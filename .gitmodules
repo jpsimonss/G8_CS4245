@@ -1,3 +1,6 @@
 [submodule "pytorch-grad-cam"]
 	path = pytorch-grad-cam
 	url = https://github.com/jacobgil/pytorch-grad-cam.git
+[submodule "original_bird_detector"]
+	path = original_bird_detector
+	url = https://github.com/AKASH2907/bird_species_classification.git
