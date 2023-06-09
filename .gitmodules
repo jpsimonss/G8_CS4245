@@ -4,3 +4,6 @@
 [submodule "original_bird_detector"]
 	path = original_bird_detector
 	url = https://github.com/AKASH2907/bird_species_classification.git
+[submodule "gradcam-tensorflow-2"]
+	path = gradcam-tensorflow-2
+	url = https://github.com/ismailuddin/gradcam-tensorflow-2.git
