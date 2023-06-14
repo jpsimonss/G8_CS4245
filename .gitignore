@@ -1,1 +1,4 @@
 __pycache__
+.venv
+mask_rcnn_coco.h5
+*.h5
