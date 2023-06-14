@@ -63,14 +63,6 @@ class GradCamG8:
         # Clip the values (equiv to applying ReLU) + normalize
         self.gradcam = np.clip(self.gradcam, 0, np.max(self.gradcam)) / np.max(self.gradcam)
         self.gradcam = cv2.resize(self.gradcam, (224, 224))
-        # self.gradcam = self.gradcam.astype('uint8')
-
-        # Show result
-        # if self.show:
-        #     plt.title('Image + Heatmap')
-        #     plt.imshow(self.image)
-        #     plt.imshow(self.gradcam, alpha=0.5)
-        #     plt.show()
         
     def gen_bbox_of_heatmap(self):
         
@@ -191,9 +183,10 @@ if __name__ == "__main__":
     #     np.save()
     
     # all_images_paths = []
-    # for image in all_images_paths:
-    #     gradcam = GradCamG8
+    # for image_path in all_images_paths:
+    #     gradcam = GradCamG8(image_path)
     #     crops = gradcam.cropped_imgs
+    #     save crops
     #     del gradcam
 
 
