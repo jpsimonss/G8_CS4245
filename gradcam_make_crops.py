@@ -13,8 +13,6 @@ from tensorflow.keras.applications.resnet50 import ResNet50, decode_predictions
 import cv2
 from resnet50_classes import all_classes
 
-
-
 class GradCamG8:
     def __init__(self, image_dir, show=False) -> None:
         self.image = np.array(load_img(f"{image_dir}", target_size=(224, 224, 3)))
@@ -22,6 +20,7 @@ class GradCamG8:
         self.model = ResNet50()
         self.gradcam = None
         self.counter_image = None
+        # Index-list with birds on ResNet50
         self.index_list = np.array([7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,80,81,82,83,84,
                                     85,86,87,88,89,90,100,127,128,129,130,131,132,133,134,135,
                                     136,137,138,139,140,141,142,143,144,145,146])
