@@ -4,16 +4,16 @@ Author: Group 8 CS4245 - Jan Peter Simons'''
 
 
 ############# IMPORTS ##############
-import random
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import sys
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img
-from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.resnet50 import ResNet50, decode_predictions
 import cv2
-import glob
+from resnet50_classes import all_classes
+
+
 
 class GradCamG8:
     def __init__(self, image_dir, show=False) -> None:
@@ -22,8 +22,12 @@ class GradCamG8:
         self.model = ResNet50()
         self.gradcam = None
         self.counter_image = None
+        self.index_list = np.array([7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,80,81,82,83,84,
+                                    85,86,87,88,89,90,100,127,128,129,130,131,132,133,134,135,
+                                    136,137,138,139,140,141,142,143,144,145,146])
 
     def generate_heatmap(self):
+
         # Make model of last layer of ResNet50 network:
         last_conv_layer = self.model.get_layer("conv5_block3_out")
         last_conv_layer_model = tf.keras.Model(self.model.inputs, last_conv_layer.output)
@@ -42,14 +46,15 @@ class GradCamG8:
             last_conv_layer_output = last_conv_layer_model(inputs)
             tape.watch(last_conv_layer_output)
             preds = classifier_model(last_conv_layer_output)
-
-            print({preds = })
-
-            top_pred_index = tf.argmax(preds[0])
-            top_class_channel = preds[:, top_pred_index]
+            
+            preds_birds = np.take(np.array(preds),self.index_list)
+            top_pred_bird_index = self.index_list[tf.argmax(preds_birds)]
+            top_class_channel = preds[:, top_pred_bird_index]
+            resnet_prediction = list(all_classes.values())[top_pred_bird_index]
+            print(f'Resnet50 pred = {resnet_prediction}\nScore: {np.max(preds_birds)}\n')
         
-        # Gradients of model wrt feature map activations of convolution layer:
-        grads = tape.gradient(top_class_channel, last_conv_layer_output)
+            # Gradients of model wrt feature map activations of convolution layer:
+            grads = tape.gradient(top_class_channel, last_conv_layer_output)
         # To which pixels do these accord?
         pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
         # Multiply gradients with actual feature map
@@ -178,7 +183,7 @@ if __name__ == "__main__":
     folder_dir = f"{ROOT_DIR}/old_dataset/missed_mrcnn"
     for image_name in os.listdir(folder_dir):
 
-        if (image_name.endswith(".jpg") ): #or image_name.endswith(".jfif")
+        if (image_name.endswith(".jpg") or image_name.endswith(".jfif")): #or image_name.endswith(".jfif")
             print(f'{image_name = }')
 
             image_path = f'{folder_dir}/{image_name}'
@@ -188,13 +193,17 @@ if __name__ == "__main__":
             gradcam.gen_bbox_of_heatmap()
             cropped_images = gradcam.cropped_imgs
 
-            # SAVE:
+            # SAVE heatmap:
             plt.figure()
             plt.imshow(gradcam.image_bbox)
             plt.imshow(gradcam.gradcam, alpha=0.5)
+            if image_name.endswith(".jfif"):
+                name = image_name.split('.')[0]
+                image_name = name + '.jpg'
             save_path_heatmap = f'{ROOT_DIR}/heatmap_crops/heatmap_{image_name}'
             plt.savefig(save_path_heatmap)
 
+            # SAVE crops:
             count = 0
             for image in cropped_images:
                 plt.figure()
