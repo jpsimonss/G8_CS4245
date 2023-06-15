@@ -11,16 +11,13 @@ import os
 import sys
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img
-from tensorflow.keras.applications.resnet50 import (
-    ResNet50,
-    preprocess_input,
-    decode_predictions)
+from tensorflow.keras.applications.resnet50 import ResNet50
 import cv2
+import glob
 
 class GradCamG8:
     def __init__(self, image_dir, show=False) -> None:
-        self.__ROOT_DIR = os.getcwd()
-        self.image = np.array(load_img(f"{self.__ROOT_DIR}{image_dir}", target_size=(224, 224, 3)))
+        self.image = np.array(load_img(f"{image_dir}", target_size=(224, 224, 3)))
         self.show = show
         self.model = ResNet50()
         self.gradcam = None
@@ -45,6 +42,9 @@ class GradCamG8:
             last_conv_layer_output = last_conv_layer_model(inputs)
             tape.watch(last_conv_layer_output)
             preds = classifier_model(last_conv_layer_output)
+
+            print({preds = })
+
             top_pred_index = tf.argmax(preds[0])
             top_class_channel = preds[:, top_pred_index]
         
@@ -90,10 +90,12 @@ class GradCamG8:
             cropped_img = self.image[y:y+h, x:x+w]
             self.cropped_imgs.append(cropped_img)
         
+        multiple = False
         if len(self.cropped_imgs) > 1:
-            print(f'No of crops: {len(self.cropped_imgs)}')
             multiple = True
-
+            if self.show:
+                print(f'No of crops: {len(self.cropped_imgs)}')
+            
         if self.show:
             plt.figure(figsize=(10,10))
             plt.suptitle('Grad-CAM results')
@@ -170,25 +172,35 @@ class GradCamG8:
 ############# TESTS for executing this file ###################
 
 if __name__ == "__main__":
-    image_path = './old_dataset/birds_images/bird_1.png' 
-    
-    
-    gradcam = GradCamG8(image_path, show=True)
-    # gradcam.generate_countermap()
-    gradcam.gen_bbox_of_heatmap()
-    cropped_images = gradcam.cropped_imgs
-    
-    # SAVE HERE:
-    # for images in cropped_images:
-    #     np.save()
-    
-    # all_images_paths = []
-    # for image_path in all_images_paths:
-    #     gradcam = GradCamG8(image_path)
-    #     crops = gradcam.cropped_imgs
-    #     save crops
-    #     del gradcam
 
+    ROOT_DIR = os.getcwd()
+    
+    folder_dir = f"{ROOT_DIR}/old_dataset/missed_mrcnn"
+    for image_name in os.listdir(folder_dir):
 
+        if (image_name.endswith(".jpg") ): #or image_name.endswith(".jfif")
+            print(f'{image_name = }')
 
-    del gradcam
+            image_path = f'{folder_dir}/{image_name}'
+            image_name = image_path.split('/')[-1]
+
+            gradcam = GradCamG8(image_path, show=False)
+            gradcam.gen_bbox_of_heatmap()
+            cropped_images = gradcam.cropped_imgs
+
+            # SAVE:
+            plt.figure()
+            plt.imshow(gradcam.image_bbox)
+            plt.imshow(gradcam.gradcam, alpha=0.5)
+            save_path_heatmap = f'{ROOT_DIR}/heatmap_crops/heatmap_{image_name}'
+            plt.savefig(save_path_heatmap)
+
+            count = 0
+            for image in cropped_images:
+                plt.figure()
+                plt.imshow(image)
+                save_path_crops = f'{ROOT_DIR}/heatmap_crops/crop{count}_{image_name}'
+                plt.savefig(save_path_crops)
+                count += 1
+
+            del gradcam
