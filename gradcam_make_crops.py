@@ -135,7 +135,8 @@ class GradCamG8:
         classifier_model = tf.keras.Model(classifier_input, x)
         
         with tf.GradientTape() as tape:
-            last_conv_layer_output = last_conv_layer_model(self.image[np.newaxis, ...])
+            inputs = last_conv_layer_model(self.image[np.newaxis, ...])
+            last_conv_layer_output = last_conv_layer_model(inputs)
             tape.watch(last_conv_layer_output)
             preds = classifier_model(last_conv_layer_output)
             top_pred_index = tf.argmax(preds[0])
@@ -164,10 +165,8 @@ class GradCamG8:
         mask[mask > 0.1] = 255
         mask[mask != 255] = 0
         mask = mask.astype(bool)
-
         ctfctl_image = self.image.copy()
         ctfctl_image[mask] = (0, 0, 0)
-
         self.counter_image = ctfctl_image
 
         if self.show:
